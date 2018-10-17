@@ -7,3 +7,6 @@ See also:
 https://github.com/playa-ru/keycloak-russian-providers
 
 https://github.com/playa-ru/keycloak-playa-themes
+
+Get it from Docker Hub: playaru/keycloak-russian
+
