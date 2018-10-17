@@ -26,7 +26,7 @@ RUN ls -l $THEMES_HOME
 
 RUN chmod -R a+r $JBOSS_HOME
 
-RUN cp $PROVIDERS_TMP/keycloak-russian-providers-$PROVIDERS_VERSION.jar $JBOSS_HOME/deployments
+RUN cp $PROVIDERS_TMP/keycloak-russian-providers-$PROVIDERS_VERSION.jar $JBOSS_HOME/standalone/deployments
 
 RUN rm -rf $PROVIDERS_TMP
 RUN rm -rf $THEMES_TMP
