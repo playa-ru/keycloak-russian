@@ -5,4 +5,5 @@ Docker build for Keycloak server with russian identity providers and two additio
 See also:
 
 https://github.com/playa-ru/keycloak-russian-providers
+
 https://github.com/playa-ru/keycloak-playa-themes
