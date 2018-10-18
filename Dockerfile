@@ -30,11 +30,11 @@ RUN cat $PROVIDERS_TMP/theme/base/admin/resources/partials/realm-identity-provid
 RUN unzip $THEMES_TMP/keycloak-playa-themes-$THEMES_VERSION.jar -d $THEMES_TMP
 RUN mv $THEMES_TMP/theme/* $THEMES_HOME
 
+RUN cp $PROVIDERS_TMP/keycloak-russian-providers-$PROVIDERS_VERSION.jar $JBOSS_HOME/standalone/deployments
+
 RUN ls -l $THEMES_HOME
 
 RUN chmod -R a+r $JBOSS_HOME
-
-RUN cp $PROVIDERS_TMP/keycloak-russian-providers-$PROVIDERS_VERSION.jar $JBOSS_HOME/standalone/deployments
 
 RUN rm -rf $PROVIDERS_TMP
 RUN rm -rf $THEMES_TMP
