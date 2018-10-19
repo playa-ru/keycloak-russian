@@ -2,7 +2,7 @@ FROM jboss/keycloak:4.5.0.Final
 
 ENV JBOSS_HOME /opt/jboss/keycloak
 ENV THEMES_HOME $JBOSS_HOME/themes
-ENV THEMES_VERSION 1.0.14
+ENV THEMES_VERSION 1.0.15
 ENV PROVIDERS_VERSION 1.0.1
 ENV THEMES_TMP /tmp/keycloak-themes
 ENV PROVIDERS_TMP /tmp/keycloak-providers
