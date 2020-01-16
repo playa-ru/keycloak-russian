@@ -1,9 +1,9 @@
-FROM jboss/keycloak:6.0.1
+FROM jboss/keycloak:8.0.1
 
 ENV JBOSS_HOME /opt/jboss/keycloak
 ENV THEMES_HOME $JBOSS_HOME/themes
 ENV THEMES_VERSION 1.0.22
-ENV PROVIDERS_VERSION 1.0.16
+ENV PROVIDERS_VERSION 1.0.17
 ENV THEMES_TMP /tmp/keycloak-themes
 ENV PROVIDERS_TMP /tmp/keycloak-providers
 ENV NEXUS_URL https://nexus.playa.ru/nexus/content/repositories/releases
