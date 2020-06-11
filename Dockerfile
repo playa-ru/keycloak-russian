@@ -3,7 +3,7 @@ FROM jboss/keycloak:10.0.0
 ENV JBOSS_HOME /opt/jboss/keycloak
 ENV THEMES_HOME $JBOSS_HOME/themes
 ENV THEMES_VERSION 1.0.22
-ENV PROVIDERS_VERSION 1.0.20
+ENV PROVIDERS_VERSION 1.0.21
 ENV THEMES_TMP /tmp/keycloak-themes
 ENV PROVIDERS_TMP /tmp/keycloak-providers
 ENV NEXUS_URL https://nexus.playa.ru/nexus/content/repositories/releases
