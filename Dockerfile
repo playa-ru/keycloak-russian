@@ -11,40 +11,6 @@ ENV PROXY_ADDRESS_FORWARDING false
 ENV JBOSS_HOME /opt/jboss/keycloak
 ENV LANG en_US.UTF-8
 
-ARG GIT_REPO
-ARG GIT_BRANCH
-ARG KEYCLOAK_DIST=https://downloads.jboss.org/keycloak/$KEYCLOAK_VERSION/keycloak-$KEYCLOAK_VERSION.tar.gz
-
-USER root
-
-RUN microdnf update -y && microdnf install -y glibc-langpack-en gzip hostname java-11-openjdk-headless openssl tar which && microdnf clean all
-
-ADD tools /opt/jboss/tools
-
-RUN chmod +x /opt/jboss/tools/autorun.sh
-RUN chmod +x /opt/jboss/tools/build-keycloak.sh
-RUN chmod +x /opt/jboss/tools/docker-entrypoint.sh
-RUN chmod +x /opt/jboss/tools/infinispan.sh
-RUN chmod +x /opt/jboss/tools/jgroups.sh
-RUN chmod +x /opt/jboss/tools/statistics.sh
-RUN chmod +x /opt/jboss/tools/vault.sh
-RUN chmod +x /opt/jboss/tools/x509.sh
-RUN chmod +x /opt/jboss/tools/databases/change-database.sh
-
-RUN ls -al /opt/jboss/tools
-
-RUN /opt/jboss/tools/build-keycloak.sh
-
-USER 1000
-
-EXPOSE 8080
-EXPOSE 8443
-
-ENTRYPOINT [ "/opt/jboss/tools/docker-entrypoint.sh" ]
-
-CMD ["-b", "0.0.0.0"]
-
-ENV JBOSS_HOME /opt/jboss/keycloak
 ENV THEMES_HOME $JBOSS_HOME/themes
 ENV THEMES_VERSION 1.0.22
 ENV PROVIDERS_VERSION 1.0.25
@@ -52,14 +18,36 @@ ENV THEMES_TMP /tmp/keycloak-themes
 ENV PROVIDERS_TMP /tmp/keycloak-providers
 ENV NEXUS_URL https://nexus.playa.ru/nexus/content/repositories/releases
 
+ARG GIT_REPO
+ARG GIT_BRANCH
+ARG KEYCLOAK_DIST=https://downloads.jboss.org/keycloak/$KEYCLOAK_VERSION/keycloak-$KEYCLOAK_VERSION.tar.gz
+
+USER root
+
+RUN microdnf update -y &&
+    microdnf install -y glibc-langpack-en gzip unzip hostname java-11-openjdk-headless openssl tar which &&
+    microdnf clean all
+
+ADD tools /opt/jboss/tools
+
+RUN chmod +x /opt/jboss/tools/autorun.sh &&
+    chmod +x /opt/jboss/tools/build-keycloak.sh &&
+    chmod +x /opt/jboss/tools/docker-entrypoint.sh &&
+    chmod +x /opt/jboss/tools/infinispan.sh &&
+    chmod +x /opt/jboss/tools/jgroups.sh &&
+    chmod +x /opt/jboss/tools/statistics.sh &&
+    chmod +x /opt/jboss/tools/vault.sh &&
+    chmod +x /opt/jboss/tools/x509.sh &&
+    chmod +x /opt/jboss/tools/databases/change-database.sh
+
+RUN ls -al /opt/jboss/tools
+
+RUN /opt/jboss/tools/build-keycloak.sh
+
 RUN mkdir -p $PROVIDERS_TMP
 RUN mkdir -p $THEMES_TMP
 ADD $NEXUS_URL/ru/playa/keycloak/keycloak-russian-providers/$PROVIDERS_VERSION/keycloak-russian-providers-$PROVIDERS_VERSION.jar $PROVIDERS_TMP
 ADD $NEXUS_URL/ru/playa/keycloak/keycloak-playa-themes/$THEMES_VERSION/keycloak-playa-themes-$THEMES_VERSION.jar $THEMES_TMP
-
-USER root
-
-RUN microdnf install -y unzip
 
 RUN unzip $PROVIDERS_TMP/keycloak-russian-providers-$PROVIDERS_VERSION.jar -d $PROVIDERS_TMP
 RUN cat $PROVIDERS_TMP/theme/base/login/messages/messages_en.custom >> $THEMES_HOME/base/login/messages/messages_en.properties
@@ -87,4 +75,11 @@ RUN chmod -R a+r $JBOSS_HOME
 RUN rm -rf $PROVIDERS_TMP
 RUN rm -rf $THEMES_TMP
 
-USER jboss
+USER 1000
+
+EXPOSE 8080
+EXPOSE 8443
+
+ENTRYPOINT [ "/opt/jboss/tools/docker-entrypoint.sh" ]
+
+CMD ["-b", "0.0.0.0"]
