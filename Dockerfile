@@ -24,21 +24,11 @@ ARG KEYCLOAK_DIST=https://downloads.jboss.org/keycloak/$KEYCLOAK_VERSION/keycloa
 
 USER root
 
-RUN microdnf update -y &&
-    microdnf install -y glibc-langpack-en gzip unzip hostname java-11-openjdk-headless openssl tar which &&
-    microdnf clean all
+RUN microdnf update -y && microdnf install -y glibc-langpack-en gzip unzip hostname java-11-openjdk-headless openssl tar which && microdnf clean all
 
 ADD tools /opt/jboss/tools
 
-RUN chmod +x /opt/jboss/tools/autorun.sh &&
-    chmod +x /opt/jboss/tools/build-keycloak.sh &&
-    chmod +x /opt/jboss/tools/docker-entrypoint.sh &&
-    chmod +x /opt/jboss/tools/infinispan.sh &&
-    chmod +x /opt/jboss/tools/jgroups.sh &&
-    chmod +x /opt/jboss/tools/statistics.sh &&
-    chmod +x /opt/jboss/tools/vault.sh &&
-    chmod +x /opt/jboss/tools/x509.sh &&
-    chmod +x /opt/jboss/tools/databases/change-database.sh
+RUN chmod +x /opt/jboss/tools/*.sh && chmod +x /opt/jboss/tools/databases/change-database.sh
 
 RUN ls -al /opt/jboss/tools
 
