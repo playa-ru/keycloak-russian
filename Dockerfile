@@ -2,9 +2,9 @@ FROM registry.access.redhat.com/ubi8-minimal
 
 ENV KEYCLOAK_VERSION 12.0.0
 ENV JDBC_POSTGRES_VERSION 42.2.5
-ENV JDBC_MYSQL_VERSION 8.0.19
+ENV JDBC_MYSQL_VERSION 8.0.22
 ENV JDBC_MARIADB_VERSION 2.5.4
-ENV JDBC_MSSQL_VERSION 7.4.1.jre11
+ENV JDBC_MSSQL_VERSION 8.2.2.jre11
 
 ENV LAUNCH_JBOSS_IN_BACKGROUND 1
 ENV PROXY_ADDRESS_FORWARDING false
@@ -20,7 +20,7 @@ ENV NEXUS_URL https://nexus.playa.ru/nexus/content/repositories/releases
 
 ARG GIT_REPO
 ARG GIT_BRANCH
-ARG KEYCLOAK_DIST=https://downloads.jboss.org/keycloak/$KEYCLOAK_VERSION/keycloak-$KEYCLOAK_VERSION.tar.gz
+ARG KEYCLOAK_DIST=https://github.com/keycloak/keycloak/releases/download/$KEYCLOAK_VERSION/keycloak-$KEYCLOAK_VERSION.tar.gz
 
 USER root
 
