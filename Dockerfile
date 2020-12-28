@@ -1,16 +1,6 @@
-FROM registry.access.redhat.com/ubi8-minimal
+FROM jboss/keycloak:12.0.1
 
-ENV KEYCLOAK_VERSION 12.0.0
-ENV JDBC_POSTGRES_VERSION 42.2.5
-ENV JDBC_MYSQL_VERSION 8.0.22
-ENV JDBC_MARIADB_VERSION 2.5.4
-ENV JDBC_MSSQL_VERSION 8.2.2.jre11
-
-ENV LAUNCH_JBOSS_IN_BACKGROUND 1
-ENV PROXY_ADDRESS_FORWARDING false
 ENV JBOSS_HOME /opt/jboss/keycloak
-ENV LANG en_US.UTF-8
-
 ENV THEMES_HOME $JBOSS_HOME/themes
 ENV THEMES_VERSION 1.0.22
 ENV PROVIDERS_VERSION 1.0.28
@@ -18,24 +8,14 @@ ENV THEMES_TMP /tmp/keycloak-themes
 ENV PROVIDERS_TMP /tmp/keycloak-providers
 ENV NEXUS_URL https://nexus.playa.ru/nexus/content/repositories/releases
 
-ARG GIT_REPO
-ARG GIT_BRANCH
-ARG KEYCLOAK_DIST=https://github.com/keycloak/keycloak/releases/download/$KEYCLOAK_VERSION/keycloak-$KEYCLOAK_VERSION.tar.gz
-
-USER root
-
-RUN microdnf update -y && microdnf install -y glibc-langpack-en gzip unzip hostname java-11-openjdk-headless openssl tar which && microdnf clean all
-
-ADD tools /opt/jboss/tools
-
-RUN chmod +x /opt/jboss/tools/*.sh && chmod +x /opt/jboss/tools/databases/change-database.sh
-
-RUN /opt/jboss/tools/build-keycloak.sh
-
 RUN mkdir -p $PROVIDERS_TMP
 RUN mkdir -p $THEMES_TMP
 ADD $NEXUS_URL/ru/playa/keycloak/keycloak-russian-providers/$PROVIDERS_VERSION/keycloak-russian-providers-$PROVIDERS_VERSION.jar $PROVIDERS_TMP
 ADD $NEXUS_URL/ru/playa/keycloak/keycloak-playa-themes/$THEMES_VERSION/keycloak-playa-themes-$THEMES_VERSION.jar $THEMES_TMP
+
+USER root
+
+RUN microdnf install -y unzip
 
 RUN unzip $PROVIDERS_TMP/keycloak-russian-providers-$PROVIDERS_VERSION.jar -d $PROVIDERS_TMP
 RUN cat $PROVIDERS_TMP/theme/base/login/messages/messages_en.custom >> $THEMES_HOME/base/login/messages/messages_en.properties
@@ -64,10 +44,3 @@ RUN rm -rf $PROVIDERS_TMP
 RUN rm -rf $THEMES_TMP
 
 USER 1000
-
-EXPOSE 8080
-EXPOSE 8443
-
-ENTRYPOINT [ "/opt/jboss/tools/docker-entrypoint.sh" ]
-
-CMD ["-b", "0.0.0.0"]
