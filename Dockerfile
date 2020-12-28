@@ -27,6 +27,9 @@ USER root
 RUN microdnf update -y && microdnf install -y glibc-langpack-en gzip unzip hostname java-11-openjdk-headless openssl tar which && microdnf clean all
 
 ADD tools /opt/jboss/tools
+
+RUN chmod +x /opt/jboss/tools/*.sh && chmod +x /opt/jboss/tools/databases/change-database.sh
+
 RUN /opt/jboss/tools/build-keycloak.sh
 
 RUN mkdir -p $PROVIDERS_TMP
