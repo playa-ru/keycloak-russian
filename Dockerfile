@@ -13,7 +13,7 @@ ENV LANG en_US.UTF-8
 
 ENV THEMES_HOME $JBOSS_HOME/themes
 ENV THEMES_VERSION 1.0.22
-ENV PROVIDERS_VERSION 1.0.27
+ENV PROVIDERS_VERSION 1.0.28
 ENV THEMES_TMP /tmp/keycloak-themes
 ENV PROVIDERS_TMP /tmp/keycloak-providers
 ENV NEXUS_URL https://nexus.playa.ru/nexus/content/repositories/releases
@@ -27,11 +27,6 @@ USER root
 RUN microdnf update -y && microdnf install -y glibc-langpack-en gzip unzip hostname java-11-openjdk-headless openssl tar which && microdnf clean all
 
 ADD tools /opt/jboss/tools
-
-RUN chmod +x /opt/jboss/tools/*.sh && chmod +x /opt/jboss/tools/databases/change-database.sh
-
-RUN ls -al /opt/jboss/tools
-
 RUN /opt/jboss/tools/build-keycloak.sh
 
 RUN mkdir -p $PROVIDERS_TMP
