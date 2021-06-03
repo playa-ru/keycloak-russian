@@ -1,16 +1,17 @@
-FROM jboss/keycloak:12.0.1
+FROM jboss/keycloak:13.0.0
 
 ENV JBOSS_HOME /opt/jboss/keycloak
 ENV THEMES_HOME $JBOSS_HOME/themes
 ENV THEMES_VERSION 1.0.22
-ENV PROVIDERS_VERSION 1.0.28
+ENV PROVIDERS_VERSION 1.0.37
 ENV THEMES_TMP /tmp/keycloak-themes
 ENV PROVIDERS_TMP /tmp/keycloak-providers
+ENV MAVEN_CENTRAL_URL https://repo1.maven.org/maven2
 ENV NEXUS_URL https://nexus.playa.ru/nexus/content/repositories/releases
 
 RUN mkdir -p $PROVIDERS_TMP
 RUN mkdir -p $THEMES_TMP
-ADD $NEXUS_URL/ru/playa/keycloak/keycloak-russian-providers/$PROVIDERS_VERSION/keycloak-russian-providers-$PROVIDERS_VERSION.jar $PROVIDERS_TMP
+ADD $MAVEN_CENTRAL_URL/ru/playa/keycloak/keycloak-russian-providers/$PROVIDERS_VERSION/keycloak-russian-providers-$PROVIDERS_VERSION.jar $PROVIDERS_TMP
 ADD $NEXUS_URL/ru/playa/keycloak/keycloak-playa-themes/$THEMES_VERSION/keycloak-playa-themes-$THEMES_VERSION.jar $THEMES_TMP
 
 USER root
