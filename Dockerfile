@@ -1,47 +1,77 @@
-FROM jboss/keycloak:16.1.1
+FROM quay.io/keycloak/keycloak:18.0.2 as builder
 
-ENV JBOSS_HOME /opt/jboss/keycloak
-ENV THEMES_HOME $JBOSS_HOME/themes
+ARG db
+
+ENV KC_HEALTH_ENABLED=true
+ENV KC_METRICS_ENABLED=true
+ENV KC_FEATURES=token-exchange
+ENV KC_DB=$db
+ENV KC_HTTP_RELATIVE_PATH=/auth
+
 ENV THEMES_VERSION 1.0.22
-ENV PROVIDERS_VERSION 1.0.40
-ENV THEMES_TMP /tmp/keycloak-themes
-ENV PROVIDERS_TMP /tmp/keycloak-providers
+ENV PROVIDERS_VERSION 1.0.44
+
 ENV MAVEN_CENTRAL_URL https://repo1.maven.org/maven2
 ENV NEXUS_URL https://nexus.playa.ru/nexus/content/repositories/releases
 
+ENV JBOSS_HOME /opt/keycloak
+ENV THEMES_HOME $JBOSS_HOME/themes
+ENV THEMES_PLAYA_TMP /tmp/keycloak-themes
+ENV THEMES_BASE_TMP /tmp/keycloak-base-themes
+ENV PROVIDERS_TMP /tmp/keycloak-providers
+
 RUN mkdir -p $PROVIDERS_TMP
-RUN mkdir -p $THEMES_TMP
+RUN mkdir -p $THEMES_PLAYA_TMP
+RUN mkdir -p $THEMES_BASE_TMP
+
 ADD $MAVEN_CENTRAL_URL/ru/playa/keycloak/keycloak-russian-providers/$PROVIDERS_VERSION/keycloak-russian-providers-$PROVIDERS_VERSION.jar $PROVIDERS_TMP
-ADD $NEXUS_URL/ru/playa/keycloak/keycloak-playa-themes/$THEMES_VERSION/keycloak-playa-themes-$THEMES_VERSION.jar $THEMES_TMP
+ADD $NEXUS_URL/ru/playa/keycloak/keycloak-playa-themes/$THEMES_VERSION/keycloak-playa-themes-$THEMES_VERSION.jar $THEMES_PLAYA_TMP
 
 USER root
 
+RUN echo "DataBase is $db"
+
 RUN microdnf install -y unzip
 
+RUN unzip /opt/keycloak/lib/lib/main/org.keycloak.keycloak-themes-18.0.2.jar -d $THEMES_BASE_TMP
+RUN mv $THEMES_BASE_TMP/theme/* $THEMES_HOME
+
+RUN unzip $THEMES_PLAYA_TMP/keycloak-playa-themes-$THEMES_VERSION.jar -d $THEMES_PLAYA_TMP
+RUN mv $THEMES_PLAYA_TMP/theme/* $THEMES_HOME
+
+RUN ls -al $PROVIDERS_TMP
+
+RUN cp $PROVIDERS_TMP/keycloak-russian-providers-$PROVIDERS_VERSION.jar $JBOSS_HOME/providers
 RUN unzip $PROVIDERS_TMP/keycloak-russian-providers-$PROVIDERS_VERSION.jar -d $PROVIDERS_TMP
 RUN cat $PROVIDERS_TMP/theme/base/login/messages/messages_en.custom >> $THEMES_HOME/base/login/messages/messages_en.properties
 RUN cat $PROVIDERS_TMP/theme/base/login/messages/messages_ru.custom >> $THEMES_HOME/base/login/messages/messages_ru.properties
 RUN cat $PROVIDERS_TMP/theme/base/admin/messages/admin-messages_en.custom >> $THEMES_HOME/base/admin/messages/admin-messages_en.properties
 RUN cat $PROVIDERS_TMP/theme/base/admin/messages/admin-messages_ru.custom >> $THEMES_HOME/base/admin/messages/admin-messages_ru.properties
-RUN cat $PROVIDERS_TMP/theme/base/admin/resources/partials/realm-identity-provider-mailru.html >> $THEMES_HOME/base/admin/resources/partials/realm-identity-provider-mailru.html
-RUN cat $PROVIDERS_TMP/theme/base/admin/resources/partials/realm-identity-provider-mailru-ext.html >> $THEMES_HOME/base/admin/resources/partials/realm-identity-provider-mailru-ext.html
-RUN cat $PROVIDERS_TMP/theme/base/admin/resources/partials/realm-identity-provider-ok.html >> $THEMES_HOME/base/admin/resources/partials/realm-identity-provider-ok.html
-RUN cat $PROVIDERS_TMP/theme/base/admin/resources/partials/realm-identity-provider-ok-ext.html >> $THEMES_HOME/base/admin/resources/partials/realm-identity-provider-ok-ext.html
-RUN cat $PROVIDERS_TMP/theme/base/admin/resources/partials/realm-identity-provider-yandex.html >> $THEMES_HOME/base/admin/resources/partials/realm-identity-provider-yandex.html
-RUN cat $PROVIDERS_TMP/theme/base/admin/resources/partials/realm-identity-provider-yandex-ext.html >> $THEMES_HOME/base/admin/resources/partials/realm-identity-provider-yandex-ext.html
-RUN cat $PROVIDERS_TMP/theme/base/admin/resources/partials/realm-identity-provider-vk.html >> $THEMES_HOME/base/admin/resources/partials/realm-identity-provider-vk.html
-RUN cat $PROVIDERS_TMP/theme/base/admin/resources/partials/realm-identity-provider-vk-ext.html >> $THEMES_HOME/base/admin/resources/partials/realm-identity-provider-vk-ext.html
-
-RUN unzip $THEMES_TMP/keycloak-playa-themes-$THEMES_VERSION.jar -d $THEMES_TMP
-RUN mv $THEMES_TMP/theme/* $THEMES_HOME
-
-RUN cp $PROVIDERS_TMP/keycloak-russian-providers-$PROVIDERS_VERSION.jar $JBOSS_HOME/standalone/deployments
-
-RUN ls -l $THEMES_HOME
+RUN cp $PROVIDERS_TMP/theme/base/admin/resources/partials/*  $THEMES_HOME/base/admin/resources/partials
 
 RUN chmod -R a+r $JBOSS_HOME
 
 RUN rm -rf $PROVIDERS_TMP
-RUN rm -rf $THEMES_TMP
+RUN rm -rf $THEMES_PLAYA_TMP
+RUN rm -rf $THEMES_BASE_TMP
 
 USER 1000
+
+RUN /opt/keycloak/bin/kc.sh build
+
+FROM quay.io/keycloak/keycloak:18.0.2
+COPY --from=builder /opt/keycloak/ /opt/keycloak/
+WORKDIR /opt/keycloak
+
+# for demonstration purposes only, please make sure to use proper certificates in production instead
+RUN keytool -genkeypair -storepass password -storetype PKCS12 -keyalg RSA -keysize 2048 -dname "CN=server" -alias server -ext "SAN:c=DNS:localhost,IP:127.0.0.1" -keystore conf/server.keystore
+# change these values to point to a running postgres instance
+
+ENV KC_DB_URL=<DBURL>
+ENV KC_DB_USERNAME=<DBUSERNAME>
+ENV KC_DB_PASSWORD=<DBPASSWORD>
+ENV KC_HOSTNAME=<HOSTNAME>
+ENV KC_HTTP_ENABLED=<HTTPENABLED>
+ENV KC_HOSTNAME_STRICT=<HOSTNAMESTRICT>
+
+ENTRYPOINT ["/opt/keycloak/bin/kc.sh", "start"]
