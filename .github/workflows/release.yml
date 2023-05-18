@@ -24,6 +24,6 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           push: true
-          tags: user/app:latest
+          tags: playaru/keycloak-russian:$GITHUB_REF_NAME
           build-args: |
             "PLAYA_RU_GITHUB_TOKEN=${{ secrets.PLAYA_RU_GITHUB_TOKEN }}"
