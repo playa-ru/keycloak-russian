@@ -3,10 +3,8 @@ name: Release Java CI
 on:
   push:
     tags:
-      - "*.*.*.rsp"
-      - "*.*.*.rsp-*"
-    branches:
-      - 'build'
+      - "*"
+
 jobs:
   docker:
     runs-on: ubuntu-latest
