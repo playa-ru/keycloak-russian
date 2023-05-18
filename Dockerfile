@@ -1,5 +1,8 @@
 FROM bellsoft/liberica-openjdk-centos:17 AS ubi-micro-install
 
+ARG SUPER_SECRET
+ENV SUPER_SECRET ${SUPER_SECRET}
+
 ARG TMP_DIST=/tmp/keycloak
 
 ENV KEYCLOAK_VERSION 21.1.1
