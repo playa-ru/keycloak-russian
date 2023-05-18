@@ -1,7 +1,7 @@
 FROM bellsoft/liberica-openjdk-centos:17 AS ubi-micro-install
 
-ARG SUPER_SECRET
-ENV SUPER_SECRET ${SUPER_SECRET}
+ARG PLAYA_RU_GITHUB_TOKEN
+ENV PLAYA_RU_GITHUB_TOKEN ${PLAYA_RU_GITHUB_TOKEN}
 
 ARG TMP_DIST=/tmp/keycloak
 
@@ -27,10 +27,7 @@ ADD $RUSSIAN_PROVIDER_DIST $TMP_DIST/
 ADD $PLAYA_THEMES_DIST $TMP_DIST/
 ADD $KAFKA_PROVIDER_DIST $TMP_DIST/
 
-RUN echo $REPO_TOKEN
-RUN echo $GIT_AUTH_TOKEN
-RUN echo $GIT_TOKEN
-RUN curl -X GET --location "https://maven.pkg.github.com/playa-ru/keycloak-ui/org/keycloak/keycloak-admin-ui/$KEYCLOAK_ADMIN_THEME_VERSION/keycloak-admin-ui-$KEYCLOAK_ADMIN_THEME_VERSION.jar" -H "Authorization: Bearer $SUPER_SECRET" -o $TMP_DIST/keycloak-admin-ui-$KEYCLOAK_ADMIN_THEME_VERSION.jar
+RUN curl -X GET --location $KEYCLOAK_ADMIN_UI_DIST -H "Authorization: Bearer $PLAYA_RU_GITHUB_TOKEN" -o $TMP_DIST/keycloak-admin-ui-$KEYCLOAK_ADMIN_THEME_VERSION.jar
 
 RUN cd /tmp/keycloak && tar -xvf /tmp/keycloak/keycloak-*.tar.gz && rm /tmp/keycloak/keycloak-*.tar.gz
 
@@ -42,7 +39,6 @@ RUN mkdir -p $TMP_DIST/themes-playa && \
     unzip $TMP_DIST/keycloak-playa-themes-$PLAYA_THEMES_VERSION.jar -d $TMP_DIST/themes-playa && \
     mv $TMP_DIST/themes-playa/theme/* $TMP_DIST/keycloak-$KEYCLOAK_VERSION/themes
 
-RUN ls -al $TMP_DIST
 RUN cat $TMP_DIST/keycloak-admin-ui-$KEYCLOAK_ADMIN_THEME_VERSION.jar
 
 RUN mv $TMP_DIST/keycloak-admin-ui-$KEYCLOAK_ADMIN_THEME_VERSION.jar $TMP_DIST/keycloak-$KEYCLOAK_VERSION/lib/lib/main/org.keycloak.keycloak-admin-ui-$KEYCLOAK_VERSION.jar
