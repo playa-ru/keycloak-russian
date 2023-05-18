@@ -19,6 +19,8 @@ ARG PLAYA_THEMES_DIST=$NEXUS_URL/ru/playa/keycloak/keycloak-playa-themes/$PLAYA_
 
 RUN yum install -y tar gzip unzip
 
+RUN echo "Token $GITHUB_TOKEN"
+
 ADD $KEYCLOAK_DIST $TMP_DIST/
 ADD $KEYCLOAK_ADMIN_UI_DIST $TMP_DIST/
 ADD $RUSSIAN_PROVIDER_DIST $TMP_DIST/
