@@ -27,7 +27,7 @@ ADD $KAFKA_PROVIDER_DIST $TMP_DIST/
 RUN echo $REPO_TOKEN
 RUN echo $GIT_AUTH_TOKEN
 RUN echo $GIT_TOKEN
-RUN curl -X GET --location "https://maven.pkg.github.com/playa-ru/keycloak-ui/org/keycloak/keycloak-admin-ui/$KEYCLOAK_ADMIN_THEME_VERSION/keycloak-admin-ui-$KEYCLOAK_ADMIN_THEME_VERSION.jar" -H "Authorization: Bearer $GIT_AUTH_TOKEN" -o $TMP_DIST/keycloak-admin-ui-$KEYCLOAK_ADMIN_THEME_VERSION.jar
+RUN curl -X GET --location "https://maven.pkg.github.com/playa-ru/keycloak-ui/org/keycloak/keycloak-admin-ui/$KEYCLOAK_ADMIN_THEME_VERSION/keycloak-admin-ui-$KEYCLOAK_ADMIN_THEME_VERSION.jar" -H "Authorization: Bearer $SUPER_SECRET" -o $TMP_DIST/keycloak-admin-ui-$KEYCLOAK_ADMIN_THEME_VERSION.jar
 
 RUN cd /tmp/keycloak && tar -xvf /tmp/keycloak/keycloak-*.tar.gz && rm /tmp/keycloak/keycloak-*.tar.gz
 
