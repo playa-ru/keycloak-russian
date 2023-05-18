@@ -25,7 +25,6 @@ ADD $KEYCLOAK_DIST $TMP_DIST/
 ADD $RUSSIAN_PROVIDER_DIST $TMP_DIST/
 ADD $PLAYA_THEMES_DIST $TMP_DIST/
 ADD $KAFKA_PROVIDER_DIST $TMP_DIST/
-ADD /esia-jcp/* $TMP_DIST/esia-jcp/
 
 RUN cd /tmp/keycloak && tar -xvf /tmp/keycloak/keycloak-*.tar.gz && rm /tmp/keycloak/keycloak-*.tar.gz
 
@@ -37,7 +36,6 @@ RUN mkdir -p $TMP_DIST/themes-playa && \
     unzip $TMP_DIST/keycloak-playa-themes-$PLAYA_THEMES_VERSION.jar -d $TMP_DIST/themes-playa && \
     mv $TMP_DIST/themes-playa/theme/* $TMP_DIST/keycloak-$KEYCLOAK_VERSION/themes
 
-RUN mv $TMP_DIST/esia-jcp/* $TMP_DIST/keycloak-$KEYCLOAK_VERSION/providers
 RUN mv $TMP_DIST/keycloak-admin-ui-$KEYCLOAK_ADMIN_THEME_VERSION.jar $TMP_DIST/keycloak-$KEYCLOAK_VERSION/lib/lib/main/org.keycloak.keycloak-admin-ui-$KEYCLOAK_VERSION.jar
 RUN mv $TMP_DIST/keycloak-russian-providers-$RUSSIAN_PROVIDER_VERSION.jar $TMP_DIST/keycloak-$KEYCLOAK_VERSION/providers/keycloak-russian-providers-$RUSSIAN_PROVIDER_VERSION.jar
 RUN mv $TMP_DIST/keycloak-kafka-provider-$KAFKA_PROVIDER_VERSION.jar $TMP_DIST/keycloak-$KEYCLOAK_VERSION/providers/keycloak-kafka-provider-$KAFKA_PROVIDER_VERSION.jar
