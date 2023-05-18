@@ -19,12 +19,11 @@ ARG PLAYA_THEMES_DIST=$NEXUS_URL/ru/playa/keycloak/keycloak-playa-themes/$PLAYA_
 
 RUN yum install -y curl tar gzip unzip
 
-RUN curl -X GET --location "https://maven.pkg.github.com/playa-ru/keycloak-ui/org/keycloak/keycloak-admin-ui/$KEYCLOAK_ADMIN_THEME_VERSION/keycloak-admin-ui-$KEYCLOAK_ADMIN_THEME_VERSION.jar" -H "Authorization: Bearer $GITHUB_TOKEN" -o $TMP_DIST/keycloak-admin-ui-$KEYCLOAK_ADMIN_THEME_VERSION.jar
-
 ADD $KEYCLOAK_DIST $TMP_DIST/
 ADD $RUSSIAN_PROVIDER_DIST $TMP_DIST/
 ADD $PLAYA_THEMES_DIST $TMP_DIST/
 ADD $KAFKA_PROVIDER_DIST $TMP_DIST/
+RUN curl -X GET --location "https://maven.pkg.github.com/playa-ru/keycloak-ui/org/keycloak/keycloak-admin-ui/$KEYCLOAK_ADMIN_THEME_VERSION/keycloak-admin-ui-$KEYCLOAK_ADMIN_THEME_VERSION.jar" -H "Authorization: Bearer $GITHUB_TOKEN" -o $TMP_DIST/keycloak-admin-ui-$KEYCLOAK_ADMIN_THEME_VERSION.jar
 
 RUN cd /tmp/keycloak && tar -xvf /tmp/keycloak/keycloak-*.tar.gz && rm /tmp/keycloak/keycloak-*.tar.gz
 
