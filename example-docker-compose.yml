@@ -1,0 +1,47 @@
+version: '2'
+
+services:
+
+  ssodb:
+    image: "postgres:9.6"
+    restart: always
+    ports:
+      - "127.0.0.1:23433:5432"
+    networks:
+      - sso
+    container_name: "ssodb"
+    environment:
+      POSTGRES_USER: "ssodb"
+      POSTGRES_PASSWORD: "ssodb"
+      POSTGRES_DB: "ssodb"
+    volumes:
+      - "/home/sso/.sso/ssodb:/var/lib/postgresql/data"
+
+  keycloak:
+    image: "playaru/keycloak-russian:16.1.1"
+    restart: always
+    ports:
+      - "127.0.0.1:16080:8080"
+      - "127.0.0.1:16081:8443"
+    networks:
+      - sso
+    container_name: "keycloak"
+    depends_on:
+      - "ssodb"
+    environment:
+      KEYCLOAK_ADMIN: "keycloak"
+      KEYCLOAK_ADMIN_PASSWORD: "VtnhjCnj3"
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://ssodb/ssodb
+      KC_DB_USERNAME: ssodb
+      KC_DB_PASSWORD: ssodb
+      KC_PROXY: edge
+      KC_HTTP_ENABLED: "true"
+      KC_HOSTNAME_STRICT: "false"
+      KC_HTTP_RELATIVE_PATH: "/auth"
+    logging:
+      options:
+        max-size: "1m"
+
+networks:
+  sso:
