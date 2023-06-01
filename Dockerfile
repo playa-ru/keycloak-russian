@@ -1,83 +1,67 @@
-FROM registry.access.redhat.com/ubi9 AS ubi-micro-build
-RUN mkdir -p /mnt/rootfs
-RUN dnf install --installroot /mnt/rootfs unzip --releasever 9 --setopt install_weak_deps=false --nodocs -y; dnf --installroot /mnt/rootfs clean all
+FROM bellsoft/liberica-openjdk-centos:17 AS ubi-micro-install
 
-FROM quay.io/keycloak/keycloak:21.0.1 as builder
-COPY --from=ubi-micro-build /mnt/rootfs /
+ARG PLAYA_RU_GITHUB_TOKEN
+ENV PLAYA_RU_GITHUB_TOKEN ${PLAYA_RU_GITHUB_TOKEN}
 
-ARG db
+RUN echo $PLAYA_RU_GITHUB_TOKEN
 
-ENV KC_HEALTH_ENABLED=true
-ENV KC_METRICS_ENABLED=true
-ENV KC_FEATURES=token-exchange
-ENV KC_DB=$db
-ENV KC_HTTP_RELATIVE_PATH=/auth
+ARG TMP_DIST=/tmp/keycloak
 
-ENV KEYCLOAK_VERSION 21.0.1
-ENV THEMES_VERSION 1.0.22
-ENV PROVIDERS_VERSION 1.0.46
-ENV KEYCLOAK_ADMIN_THEME 1.0.7
+ENV KEYCLOAK_VERSION 21.1.1
+ENV KEYCLOAK_ADMIN_THEME_VERSION 21.1.1.rsp
+ENV PLAYA_THEMES_VERSION 1.0.22
+ENV RUSSIAN_PROVIDER_VERSION 21.1.1.rsp
+ENV KAFKA_PROVIDER_VERSION 21.1.1
 
 ENV MAVEN_CENTRAL_URL https://repo1.maven.org/maven2
 ENV NEXUS_URL https://nexus.playa.ru/nexus/content/repositories/releases
 
-ENV JBOSS_HOME /opt/keycloak
-ENV THEMES_HOME $JBOSS_HOME/themes
-ENV THEMES_PLAYA_TMP /tmp/keycloak-themes
-ENV THEMES_BASE_TMP /tmp/keycloak-base-themes
-ENV PROVIDERS_TMP /tmp/keycloak-providers
+ARG KEYCLOAK_DIST=https://github.com/keycloak/keycloak/releases/download/$KEYCLOAK_VERSION/keycloak-$KEYCLOAK_VERSION.tar.gz
+ARG KEYCLOAK_ADMIN_UI_DIST=https://maven.pkg.github.com/playa-ru/keycloak-ui/org/keycloak/keycloak-admin-ui/$KEYCLOAK_ADMIN_THEME_VERSION/keycloak-admin-ui-$KEYCLOAK_ADMIN_THEME_VERSION.jar
+ARG RUSSIAN_PROVIDER_DIST=$MAVEN_CENTRAL_URL/ru/playa/keycloak/keycloak-russian-providers/$RUSSIAN_PROVIDER_VERSION/keycloak-russian-providers-$RUSSIAN_PROVIDER_VERSION.jar
+ARG KAFKA_PROVIDER_DIST=$MAVEN_CENTRAL_URL/ru/playa/keycloak/keycloak-kafka-provider/$KAFKA_PROVIDER_VERSION/keycloak-kafka-provider-$KAFKA_PROVIDER_VERSION.jar
+ARG PLAYA_THEMES_DIST=$NEXUS_URL/ru/playa/keycloak/keycloak-playa-themes/$PLAYA_THEMES_VERSION/keycloak-playa-themes-$PLAYA_THEMES_VERSION.jar
 
-RUN mkdir -p $PROVIDERS_TMP
-RUN mkdir -p $THEMES_PLAYA_TMP
-RUN mkdir -p $THEMES_BASE_TMP
+RUN yum install -y curl tar gzip unzip
 
-ADD $MAVEN_CENTRAL_URL/ru/playa/keycloak/keycloak-russian-providers/$PROVIDERS_VERSION/keycloak-russian-providers-$PROVIDERS_VERSION.jar $PROVIDERS_TMP
-ADD $NEXUS_URL/ru/playa/keycloak/keycloak-playa-themes/$THEMES_VERSION/keycloak-playa-themes-$THEMES_VERSION.jar $THEMES_PLAYA_TMP
-ADD $NEXUS_URL/org/keycloak/keycloak-admin-ui/$KEYCLOAK_ADMIN_THEME/keycloak-admin-ui-$KEYCLOAK_ADMIN_THEME.jar $PROVIDERS_TMP
+ADD $KEYCLOAK_DIST $TMP_DIST/
+ADD $RUSSIAN_PROVIDER_DIST $TMP_DIST/
+ADD $PLAYA_THEMES_DIST $TMP_DIST/
+ADD $KAFKA_PROVIDER_DIST $TMP_DIST/
 
-USER root
+RUN curl -X GET --location $KEYCLOAK_ADMIN_UI_DIST -H "Authorization: Bearer $PLAYA_RU_GITHUB_TOKEN" -o $TMP_DIST/keycloak-admin-ui-$KEYCLOAK_ADMIN_THEME_VERSION.jar
 
-RUN echo "DataBase is $db"
+RUN cd /tmp/keycloak && tar -xvf /tmp/keycloak/keycloak-*.tar.gz && rm /tmp/keycloak/keycloak-*.tar.gz
 
-RUN unzip /opt/keycloak/lib/lib/main/org.keycloak.keycloak-themes-$KEYCLOAK_VERSION.jar -d $THEMES_BASE_TMP
-RUN mv $THEMES_BASE_TMP/theme/* $THEMES_HOME
+RUN mkdir -p $TMP_DIST/themes-base && \
+    unzip $TMP_DIST/keycloak-$KEYCLOAK_VERSION/lib/lib/main/org.keycloak.keycloak-themes-$KEYCLOAK_VERSION.jar -d $TMP_DIST/themes-base && \
+    mv $TMP_DIST/themes-base/theme/* $TMP_DIST/keycloak-$KEYCLOAK_VERSION/themes
 
-RUN unzip $THEMES_PLAYA_TMP/keycloak-playa-themes-$THEMES_VERSION.jar -d $THEMES_PLAYA_TMP
-RUN mv $THEMES_PLAYA_TMP/theme/* $THEMES_HOME
+RUN mkdir -p $TMP_DIST/themes-playa && \
+    unzip $TMP_DIST/keycloak-playa-themes-$PLAYA_THEMES_VERSION.jar -d $TMP_DIST/themes-playa && \
+    mv $TMP_DIST/themes-playa/theme/* $TMP_DIST/keycloak-$KEYCLOAK_VERSION/themes
 
-RUN ls -al $PROVIDERS_TMP
+RUN cat $TMP_DIST/keycloak-admin-ui-$KEYCLOAK_ADMIN_THEME_VERSION.jar
 
-RUN cp $PROVIDERS_TMP/keycloak-admin-ui-$KEYCLOAK_ADMIN_THEME.jar $JBOSS_HOME/lib/lib/main/org.keycloak.keycloak-admin-ui-$KEYCLOAK_VERSION.jar
+RUN mv $TMP_DIST/keycloak-admin-ui-$KEYCLOAK_ADMIN_THEME_VERSION.jar $TMP_DIST/keycloak-$KEYCLOAK_VERSION/lib/lib/main/org.keycloak.keycloak-admin-ui-$KEYCLOAK_VERSION.jar
+RUN mv $TMP_DIST/keycloak-russian-providers-$RUSSIAN_PROVIDER_VERSION.jar $TMP_DIST/keycloak-$KEYCLOAK_VERSION/providers/keycloak-russian-providers-$RUSSIAN_PROVIDER_VERSION.jar
+RUN mv $TMP_DIST/keycloak-kafka-provider-$KAFKA_PROVIDER_VERSION.jar $TMP_DIST/keycloak-$KEYCLOAK_VERSION/providers/keycloak-kafka-provider-$KAFKA_PROVIDER_VERSION.jar
 
-RUN cp $PROVIDERS_TMP/keycloak-russian-providers-$PROVIDERS_VERSION.jar $JBOSS_HOME/providers
-RUN unzip $PROVIDERS_TMP/keycloak-russian-providers-$PROVIDERS_VERSION.jar -d $PROVIDERS_TMP
-RUN cat $PROVIDERS_TMP/theme/base/login/messages/messages_en.custom >> $THEMES_HOME/base/login/messages/messages_en.properties
-RUN cat $PROVIDERS_TMP/theme/base/login/messages/messages_ru.custom >> $THEMES_HOME/base/login/messages/messages_ru.properties
-RUN cat $PROVIDERS_TMP/theme/base/admin/messages/admin-messages_en.custom >> $THEMES_HOME/base/admin/messages/admin-messages_en.properties
-RUN cat $PROVIDERS_TMP/theme/base/admin/messages/admin-messages_ru.custom >> $THEMES_HOME/base/admin/messages/admin-messages_ru.properties
+RUN mkdir -p /opt/keycloak && mv /tmp/keycloak/keycloak-$KEYCLOAK_VERSION/* /opt/keycloak && mkdir -p /opt/keycloak/data
 
-RUN chmod -R a+r $JBOSS_HOME
+RUN chmod -R g+rwX /opt/keycloak
 
-RUN rm -rf $PROVIDERS_TMP
-RUN rm -rf $THEMES_PLAYA_TMP
-RUN rm -rf $THEMES_BASE_TMP
+FROM bellsoft/liberica-openjdk-centos:17 AS ubi-micro-chown
+ENV LANG en_US.UTF-8
+
+COPY --from=ubi-micro-install --chown=1000:0 /opt/keycloak /opt/keycloak
+
+RUN echo "keycloak:x:0:root" >> /etc/group && \
+    echo "keycloak:x:1000:0:keycloak user:/opt/keycloak:/sbin/nologin" >> /etc/passwd
 
 USER 1000
 
-RUN /opt/keycloak/bin/kc.sh build
+EXPOSE 8080
+EXPOSE 8443
 
-FROM quay.io/keycloak/keycloak:21.0.1
-COPY --from=builder /opt/keycloak/ /opt/keycloak/
-WORKDIR /opt/keycloak
-
-# for demonstration purposes only, please make sure to use proper certificates in production instead
-RUN keytool -genkeypair -storepass password -storetype PKCS12 -keyalg RSA -keysize 2048 -dname "CN=server" -alias server -ext "SAN:c=DNS:localhost,IP:127.0.0.1" -keystore conf/server.keystore
-# change these values to point to a running postgres instance
-
-ENV KC_DB_URL=<DBURL>
-ENV KC_DB_USERNAME=<DBUSERNAME>
-ENV KC_DB_PASSWORD=<DBPASSWORD>
-ENV KC_HTTP_ENABLED=<HTTPENABLED>
-ENV KC_HOSTNAME_STRICT=<HOSTNAMESTRICT>
-
-ENTRYPOINT ["/opt/keycloak/bin/kc.sh", "start"]
+ENTRYPOINT [ "/opt/keycloak/bin/kc.sh" ]
