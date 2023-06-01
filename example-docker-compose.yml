@@ -18,7 +18,7 @@ services:
       - "/home/sso/.sso/ssodb:/var/lib/postgresql/data"
 
   keycloak:
-    image: "playaru/keycloak-russian:16.1.1"
+    image: "playaru/keycloak-russian:21.1.1"
     restart: always
     ports:
       - "127.0.0.1:16080:8080"
@@ -39,6 +39,8 @@ services:
       KC_HTTP_ENABLED: "true"
       KC_HOSTNAME_STRICT: "false"
       KC_HTTP_RELATIVE_PATH: "/auth"
+    command:
+      - "start"
     logging:
       options:
         max-size: "1m"
