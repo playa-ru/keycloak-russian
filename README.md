@@ -16,7 +16,7 @@ docker pull playaru/keycloak-russian
 Сборка Keycloak версии 18.0.2 и выше осуществляется комадной:
 
 ```
-docker build --build-arg PLAYA_RU_GITHUB_TOKEN=XXX . -t keycloak:postres_18.0.2
+docker build . -t keycloak:postres_18.0.2
 ```
 В переменную `PLAYA_RU_GITHUB_TOKEN` пишется токен к GitHub (у токена должны быть выданы права чтение репозитория)
 

@@ -18,7 +18,7 @@ services:
       - "/home/sso/.sso/ssodb:/var/lib/postgresql/data"
 
   keycloak:
-    image: "playaru/keycloak-russian:21.1.1"
+    image: "playaru/keycloak-russian:24.0.1"
     restart: always
     ports:
       - "127.0.0.1:16080:8080"
