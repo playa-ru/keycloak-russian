@@ -1,4 +1,4 @@
-FROM bellsoft/liberica-openjdk-centos:17 AS ubi-micro-install
+FROM bellsoft/liberica-openjdk-debian:17 AS ubi-micro-install
 
 ARG PLAYA_RU_GITHUB_TOKEN
 ENV PLAYA_RU_GITHUB_TOKEN ${PLAYA_RU_GITHUB_TOKEN}
@@ -20,7 +20,7 @@ ARG RUSSIAN_PROVIDER_DIST=$MAVEN_CENTRAL_URL/ru/playa/keycloak/keycloak-russian-
 ARG KAFKA_PROVIDER_DIST=$MAVEN_CENTRAL_URL/ru/playa/keycloak/keycloak-kafka-provider/$KAFKA_PROVIDER_VERSION/keycloak-kafka-provider-$KAFKA_PROVIDER_VERSION.jar
 ARG PLAYA_THEMES_DIST=$NEXUS_URL/ru/playa/keycloak/keycloak-playa-themes/$PLAYA_THEMES_VERSION/keycloak-playa-themes-$PLAYA_THEMES_VERSION.jar
 
-RUN yum install -y curl tar gzip unzip
+RUN apt update && apt install -y curl tar gzip unzip
 
 ADD $KEYCLOAK_DIST $TMP_DIST/
 ADD $RUSSIAN_PROVIDER_DIST $TMP_DIST/
