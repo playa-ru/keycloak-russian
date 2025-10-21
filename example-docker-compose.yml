@@ -2,48 +2,48 @@ version: '2'
 
 services:
 
-  ssodb:
-    image: "postgres:9.6"
+  sso-postgresql:
+    image: "postgres:17"
     restart: always
     ports:
-      - "127.0.0.1:23433:5432"
+      - "127.0.0.1:25432:5432"
     networks:
       - sso
-    container_name: "ssodb"
+    container_name: sso-postgresql
     environment:
-      POSTGRES_USER: "ssodb"
-      POSTGRES_PASSWORD: "ssodb"
-      POSTGRES_DB: "ssodb"
+      POSTGRES_USER: ssodb
+      POSTGRES_PASSWORD: ssodb
+      POSTGRES_DB: ssodb
     volumes:
-      - "/home/sso/.sso/ssodb:/var/lib/postgresql/data"
+      - ./.sso-postgresql:/var/lib/postgresql/data
 
-  keycloak:
-    image: "playaru/keycloak-russian:24.0.1"
-    restart: always
+  sso-keycloak:
+    image: playaru/keycloak-russian:26.4.0
+    container_name: sso-keycloak
     ports:
       - "127.0.0.1:16080:8080"
       - "127.0.0.1:16081:8443"
     networks:
       - sso
-    container_name: "keycloak"
     depends_on:
-      - "ssodb"
+      - sso-postgresql
+    entrypoint: >
+      sh -c "/opt/keycloak/bin/kc.sh build --db=postgres && exec /opt/keycloak/bin/kc.sh start"
     environment:
-      KEYCLOAK_ADMIN: "keycloak"
-      KEYCLOAK_ADMIN_PASSWORD: "VtnhjCnj3"
       KC_DB: postgres
-      KC_DB_URL: jdbc:postgresql://ssodb/ssodb
+      KC_DB_URL: jdbc:postgresql://sso-postgresql/ssodb
       KC_DB_USERNAME: ssodb
       KC_DB_PASSWORD: ssodb
-      KC_PROXY: edge
-      KC_HTTP_ENABLED: "true"
+      KC_HTTP_RELATIVE_PATH: /auth
       KC_HOSTNAME_STRICT: "false"
-      KC_HTTP_RELATIVE_PATH: "/auth"
-    command:
-      - "start"
+      KC_PROXY_HEADERS: xforwarded
+      KEYCLOAK_ADMIN: keycloak
+      KEYCLOAK_ADMIN_PASSWORD: "password"
+      KEYCLOAK_KAFKA_SYNC: "false"
+      KC_HTTP_ENABLED: "true"
     logging:
       options:
-        max-size: "1m"
+        max-size: 5m
 
 networks:
   sso:

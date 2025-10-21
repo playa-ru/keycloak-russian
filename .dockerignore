@@ -1,0 +1,9 @@
+example-docker-compose.yml
+LICENSE
+README.md
+docker-compose.yml
+.gitignore
+.idea
+.github
+.gitverse
+.sso-postgresql
